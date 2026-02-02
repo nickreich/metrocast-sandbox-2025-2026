@@ -16,7 +16,7 @@ import subprocess
     help="Perform a short run."
 )
 def main(today_date: str | None = None, short_run: bool = False):
-    """Generate flu metrocast predictions from AR(6) pooled theta model and plot them."""
+    """Generate flu metrocast predictions from AR(6) model and plot them."""
     try:
         today_date = datetime.date.fromisoformat(today_date)
     except (TypeError, ValueError):  # if today_date is None or a bad format
@@ -28,12 +28,10 @@ def main(today_date: str | None = None, short_run: bool = False):
     else:
         short_run_flag = []
     
-    subprocess.run(["python", "0_ar6_thetaP_state.py",
+    subprocess.run(["python", "0_ar6_thetaP.py",
                     "--reference_date", str(reference_date)] + short_run_flag)
-    subprocess.run(["python", "1_ar6_thetaP_hsa.py",
-                    "--reference_date", str(reference_date)] + short_run_flag)
-    subprocess.run(["Rscript", "2_ar6_thetaP_combined.R", str(reference_date)])
-    # subprocess.run(["Rscript", "3_plot.R", str(reference_date)])
+    subprocess.run(["Rscript", "1_format_metrocast.R", str(reference_date)])
+    # subprocess.run(["Rscript", "2_plot.R", str(reference_date)])
 
 
 if __name__ == "__main__":

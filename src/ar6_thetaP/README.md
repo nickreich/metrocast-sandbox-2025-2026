@@ -12,7 +12,7 @@ python -m pip install -r requirements.txt
 python main.py --today_date=2025-09-17 --short_run
 ```
 
-This should result in a model output file under `../model-output/ar6_thetaP`. There will also be some other artifacts under `ar6_thetaP/intermediate-output/output` that we can ignore for now; at some point, we would like to commit those to a different repository.
+This should result in a model output file under `../../model-output/UMass-AR6_thetaP`. There will also be some other artifacts under `AR6_thetaP/intermediate-output/output` that we can ignore for now; at some point, we would like to commit those to a different repository.
 
 # requirements.txt and renv.lock details
 

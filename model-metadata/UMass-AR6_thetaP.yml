@@ -1,0 +1,24 @@
+team_name: "UMass-Amherst"
+team_abbr: "UMass"
+model_name: "AR(6) model"
+model_abbr: "AR6_thetaP"
+model_version: "1.0"
+model_contributors: [
+  {
+    "name": "Evan Ray",
+    "affiliation": "UMass Amherst",
+    "email": "elray@umass.edu"
+  },
+  {
+    "name": "Nick Reich",
+    "affiliation": "UMass Amherst",
+    "email": "nick@umass.edu"
+  }
+]
+license: "CC-BY-4.0"
+designated_model: true
+methods: "An AR(6) model fit jointly to all locations with shared AR parameters."
+data_sources: "Weekly percent flu ED visits from NSSP."
+ensemble_of_hub_models: false
+repo_url: "https://github.com/reichlab/sarix"
+local_fit_jointly: true

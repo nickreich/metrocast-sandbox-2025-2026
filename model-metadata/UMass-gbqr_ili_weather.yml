@@ -1,0 +1,15 @@
+team_name: "UMass Amherst"
+team_abbr: "UMass"
+model_name: "Gradient Boosting Quantile Regression (MCHub + ILINet + Weather)"
+model_abbr: "gbqr_ili_weather"
+local_fit_jointly: true
+model_contributors:
+  - name: "Nicholas Reich"
+    affiliation: "UMass Amherst"
+    email: "nick@umass.edu"
+  - name: "Evan Ray"
+    affiliation: "UMass Amherst"
+license: "CC-BY-4.0"
+designated_model: false
+data_sources: "MetroCast Hub target data (NSSP ED surveillance), CDC ILINet outpatient surveillance data, Open-Meteo weather data (temperature, humidity, precipitation)"
+methods: "Gradient boosting quantile regression model using MetroCast Hub target data as the primary source with supplementary training from ILINet outpatient surveillance data and weather covariates. Weather features include temperature (avg/max/min), relative humidity, absolute humidity, and precipitation with 1-week and 2-week lags plus 3-week rolling averages (24 weather features total). The model uses bagging with 100 bootstrap samples (70% of seasons per bag). Features include Taylor coefficients for trend/curvature estimation, rolling means, lagged values, and one-hot encodings of source, aggregation level, and location. A fourth-root power transform is applied to stabilize variance, with per-location scale and center normalization. Predictions are made jointly across all locations with quantile non-crossing correction applied post-prediction."

@@ -34,6 +34,7 @@ MODEL_CONFIG["gbqr_flusurv"]="16G:04:00:00"
 MODEL_CONFIG["gbqr_nhsn"]="20G:04:30:00"
 MODEL_CONFIG["gbqr_nssp"]="24G:04:30:00"
 MODEL_CONFIG["gbqr_5src"]="32G:05:30:00"
+MODEL_CONFIG["gbqr_weather"]="16G:03:30:00"
 
 echo "=============================================="
 echo "Submitting GBQR models to Unity cluster"
@@ -44,7 +45,7 @@ echo ""
 
 cd "$REPO_ROOT"
 
-for model in gbqr gbqr_ili gbqr_flusurv gbqr_nhsn gbqr_nssp gbqr_5src; do
+for model in gbqr gbqr_ili gbqr_flusurv gbqr_nhsn gbqr_nssp gbqr_5src gbqr_weather; do
     # Parse config
     IFS=':' read -r mem time <<< "${MODEL_CONFIG[$model]}"
 

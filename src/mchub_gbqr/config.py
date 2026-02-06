@@ -33,6 +33,19 @@ class ModelConfig:
     use_nhsn: bool = False
     use_nssp_extra: bool = False
 
+    # Weather data as additional features (not incidence data)
+    use_weather: bool = False
+    weather_file: Optional[Path] = None  # Path to weather CSV, or None for default
+    weather_features: List[str] = field(
+        default_factory=lambda: ["temp_avg_f", "humidity_abs_gm3"]
+    )
+    weather_lags: List[int] = field(
+        default_factory=lambda: [1, 2]  # 1-week and 2-week lags
+    )
+    weather_rolling_windows: List[int] = field(
+        default_factory=lambda: [3]  # 3-week trailing average
+    )
+
     # Bagging parameters
     num_bags: int = 100
     bag_frac_samples: float = 0.7

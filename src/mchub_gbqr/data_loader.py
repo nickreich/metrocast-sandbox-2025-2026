@@ -401,3 +401,120 @@ def get_mchub_locations(hub_root: Path) -> list:
     """
     locations_df = load_location_crosswalk(hub_root)
     return locations_df["location"].tolist()
+
+
+def load_weather_data(
+    weather_file: Optional[Path] = None,
+    features: Optional[list] = None,
+    hub_root: Optional[Path] = None
+) -> pd.DataFrame:
+    """Load weather data for HSA locations.
+
+    Weather data provides temperature and humidity features that can improve
+    flu forecasting, as flu transmission is affected by weather conditions.
+
+    Args:
+        weather_file: Path to weather CSV file. If None, looks in default location.
+        features: List of weather feature columns to include. If None, uses all available.
+        hub_root: Hub root path for finding default weather file location.
+
+    Returns:
+        DataFrame with columns:
+            - location: HSA location slug
+            - wk_end_date: Week ending date (Saturday)
+            - [weather features]: Temperature, humidity, etc.
+
+    Raises:
+        FileNotFoundError: If weather file not found.
+    """
+    # Find weather file
+    if weather_file is not None:
+        file_path = weather_file
+    elif hub_root is not None:
+        # Default location: auxiliary-data/weather_by_hsa.csv (relative to hub root)
+        file_path = hub_root / "auxiliary-data" / "weather_by_hsa.csv"
+    else:
+        raise ValueError("Must provide either weather_file or hub_root")
+
+    if not file_path.exists():
+        raise FileNotFoundError(f"Weather data file not found: {file_path}")
+
+    # Load weather data
+    df = pd.read_csv(file_path)
+    df["wk_end_date"] = pd.to_datetime(df["week_end_date"])
+
+    # Available weather features
+    all_weather_cols = [
+        "temp_avg_f", "temp_max_f", "temp_min_f",
+        "humidity_avg_pct", "humidity_abs_gm3", "precip_total_mm"
+    ]
+
+    # Filter to requested features (if specified)
+    if features is not None:
+        weather_cols = [c for c in features if c in df.columns]
+    else:
+        weather_cols = [c for c in all_weather_cols if c in df.columns]
+
+    # Select columns
+    keep_cols = ["location", "wk_end_date"] + weather_cols
+    df = df[[c for c in keep_cols if c in df.columns]]
+
+    return df
+
+
+def load_weather_with_lags(
+    weather_file: Optional[Path] = None,
+    features: Optional[list] = None,
+    hub_root: Optional[Path] = None,
+    lags: Optional[list] = None,
+    rolling_windows: Optional[list] = None
+) -> pd.DataFrame:
+    """Load weather data with optional lagged and rolling average features.
+
+    Creates lagged versions of weather features (e.g., last week's temperature)
+    and rolling averages (e.g., trailing 3-week mean) which may be useful
+    predictors since weather affects flu transmission with some delay.
+
+    Args:
+        weather_file: Path to weather CSV file.
+        features: List of weather feature columns to include.
+        hub_root: Hub root path for finding default weather file location.
+        lags: List of lag values in weeks (e.g., [1, 2] for 1-week and 2-week lags).
+              If None, no lags are created.
+        rolling_windows: List of window sizes for trailing rolling averages
+              (e.g., [3] for 3-week trailing average). Windows are right-aligned
+              and include the current week. If None, no rolling averages created.
+
+    Returns:
+        DataFrame with weather features, lagged versions, and rolling averages.
+    """
+    df = load_weather_data(
+        weather_file=weather_file,
+        features=features,
+        hub_root=hub_root
+    )
+
+    # Get weather feature columns (everything except location and date)
+    weather_cols = [c for c in df.columns if c not in ["location", "wk_end_date"]]
+
+    # Sort by location and date for proper lag/rolling calculation
+    df = df.sort_values(["location", "wk_end_date"])
+
+    # Create lagged features
+    if lags is not None and len(lags) > 0:
+        for lag in lags:
+            for col in weather_cols:
+                lag_col_name = f"{col}_lag{lag}"
+                df[lag_col_name] = df.groupby("location")[col].shift(lag)
+
+    # Create rolling average features (trailing, right-aligned)
+    if rolling_windows is not None and len(rolling_windows) > 0:
+        for window in rolling_windows:
+            for col in weather_cols:
+                roll_col_name = f"{col}_roll{window}"
+                # min_periods=1 allows partial windows at start of series
+                df[roll_col_name] = df.groupby("location")[col].transform(
+                    lambda x: x.rolling(window=window, min_periods=1).mean()
+                )
+
+    return df

@@ -16,7 +16,7 @@
 #   sbatch src/unity/run-model.sbatch gbqr_5src 2025-12-26
 #   sbatch src/unity/run-model.sbatch gbqr 2025-12-26 --short_run
 #
-# Models: gbqr, gbqr_ili, gbqr_flusurv, gbqr_nhsn, gbqr_nssp, gbqr_5src
+# Models: gbqr, gbqr_ili, gbqr_flusurv, gbqr_nhsn, gbqr_nssp, gbqr_5src, gbqr_weather
 
 set -e
 
@@ -32,7 +32,7 @@ if [ -z "$MODEL_NAME" ] || [ -z "$TODAY_DATE" ]; then
 fi
 
 # Validate model name
-VALID_MODELS="gbqr gbqr_5src gbqr_ili gbqr_flusurv gbqr_nhsn gbqr_nssp"
+VALID_MODELS="gbqr gbqr_5src gbqr_ili gbqr_flusurv gbqr_nhsn gbqr_nssp gbqr_weather"
 if [[ ! " $VALID_MODELS " =~ " $MODEL_NAME " ]]; then
     echo "Error: Invalid model name '$MODEL_NAME'"
     echo "Valid models: $VALID_MODELS"
@@ -79,6 +79,13 @@ echo "Python version: $(python --version)"
 
 # Set PYTHONPATH for imports
 export PYTHONPATH="$REPO_ROOT"
+
+# Update weather data if running a weather model
+if [[ "$MODEL_NAME" == *"weather"* ]]; then
+    echo ""
+    echo "Updating weather data..."
+    python "$REPO_ROOT/src/gbqr_weather/update_weather.py"
+fi
 
 # Run the model
 echo ""

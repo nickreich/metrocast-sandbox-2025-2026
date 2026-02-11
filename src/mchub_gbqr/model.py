@@ -12,7 +12,10 @@ from tqdm.autonotebook import tqdm
 from idmodels.preprocess import create_features_and_targets
 
 from .config import ModelConfig, RunConfig
-from .data_loader import load_all_data, load_location_crosswalk, get_mchub_locations
+from .data_loader import (
+    load_all_data, load_location_crosswalk, get_mchub_locations,
+    load_weather_with_lags
+)
 from .hsa_populations import load_mchub_populations
 from .transforms import apply_scale_center_transform, get_transform_factors
 
@@ -73,8 +76,13 @@ class GBQRModel:
             group_cols=["source", "location"]
         )
 
+        # Load and merge weather features if enabled
+        weather_feat_names = []
+        if self.config.use_weather:
+            df, weather_feat_names = self._merge_weather_features(df, run_config)
+
         # Create features and targets using idmodels preprocessing
-        init_feats = ["inc_trans_cs", "season_week", "log_pop"]
+        init_feats = ["inc_trans_cs", "season_week", "log_pop"] + weather_feat_names
         df, feat_names = create_features_and_targets(
             df=df,
             incl_level_feats=self.config.incl_level_feats,
@@ -123,6 +131,74 @@ class GBQRModel:
         self._save_predictions(preds_df, run_config)
 
         return preds_df
+
+    def _merge_weather_features(
+        self,
+        df: pd.DataFrame,
+        run_config: RunConfig
+    ) -> tuple[pd.DataFrame, list]:
+        """Load and merge weather features into the main dataframe.
+
+        Weather data provides temperature and humidity features that can improve
+        flu forecasting. Features are merged by location and week_end_date.
+
+        For supplementary data sources (ILINet, NHSN, etc.) that don't have
+        direct HSA locations, weather features are filled with NaN and the model
+        handles missing values.
+
+        Args:
+            df: Main dataframe with incidence data.
+            run_config: Runtime configuration.
+
+        Returns:
+            Tuple of (dataframe with weather features, list of weather feature names).
+        """
+        try:
+            # Load weather data with lags and rolling averages
+            # - Raw features (current week)
+            # - Lagged features (weather affects transmission with delay)
+            # - Rolling averages (smoothed signal)
+            weather_df = load_weather_with_lags(
+                weather_file=self.config.weather_file,
+                features=self.config.weather_features,
+                hub_root=run_config.hub_root,
+                lags=self.config.weather_lags,
+                rolling_windows=self.config.weather_rolling_windows
+            )
+        except FileNotFoundError as e:
+            print(f"Warning: Weather data not found, skipping weather features: {e}")
+            return df, []
+
+        # Get weather feature columns (everything except location and date)
+        weather_feat_cols = [
+            c for c in weather_df.columns
+            if c not in ["location", "wk_end_date"]
+        ]
+
+        if not weather_feat_cols:
+            print("Warning: No weather features found in data")
+            return df, []
+
+        # Merge weather features
+        # Note: This will only match MCHub locations directly; supplementary
+        # sources with prefixed locations (ilinet_, nhsn_, etc.) won't match
+        # and will get NaN values, which LightGBM handles natively
+        df = df.merge(
+            weather_df[["location", "wk_end_date"] + weather_feat_cols],
+            on=["location", "wk_end_date"],
+            how="left"
+        )
+
+        # Standardize weather features (z-score normalization)
+        for col in weather_feat_cols:
+            col_mean = df[col].mean()
+            col_std = df[col].std()
+            if col_std > 0:
+                df[col] = (df[col] - col_mean) / col_std
+
+        print(f"Added {len(weather_feat_cols)} weather features: {weather_feat_cols}")
+
+        return df, weather_feat_cols
 
     def _train_and_predict(
         self,

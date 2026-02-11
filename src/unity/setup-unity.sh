@@ -13,7 +13,7 @@ REPO_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 SRC_DIR="$REPO_ROOT/src"
 
 # Available models (excluding gbqr_3src)
-ALL_MODELS="gbqr gbqr_5src gbqr_ili gbqr_flusurv gbqr_nhsn gbqr_nssp"
+ALL_MODELS="gbqr gbqr_5src gbqr_ili gbqr_flusurv gbqr_nhsn gbqr_nssp gbqr_weather"
 
 # Determine which models to set up
 if [ $# -eq 0 ]; then

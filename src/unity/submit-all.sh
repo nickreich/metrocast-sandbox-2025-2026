@@ -28,12 +28,12 @@ mkdir -p "$REPO_ROOT/logs"
 # Model configurations: model_name:memory:time
 # Adjust these based on observed runtimes (added 2h buffer for Unity)
 declare -A MODEL_CONFIG
-MODEL_CONFIG["gbqr"]="16G:03:30:00"
-MODEL_CONFIG["gbqr_ili"]="16G:04:00:00"
-MODEL_CONFIG["gbqr_flusurv"]="16G:04:00:00"
-MODEL_CONFIG["gbqr_nhsn"]="20G:04:30:00"
-MODEL_CONFIG["gbqr_nssp"]="24G:04:30:00"
-MODEL_CONFIG["gbqr_5src"]="32G:05:30:00"
+MODEL_CONFIG["gbqr"]="16G:12:00:00"
+MODEL_CONFIG["gbqr_ili"]="16G:12:00:00"
+MODEL_CONFIG["gbqr_flusurv"]="16G:12:00:00"
+MODEL_CONFIG["gbqr_nhsn"]="20G:12:00:00"
+MODEL_CONFIG["gbqr_nssp"]="24G:12:00:00"
+MODEL_CONFIG["gbqr_5src"]="32G:12:00:00"
 
 echo "=============================================="
 echo "Submitting GBQR models to Unity cluster"

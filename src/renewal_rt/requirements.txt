@@ -1,0 +1,22 @@
+# renewal_rt dependencies.
+#
+# Setup (from the repo root), using the latest local idmodels/iddata source:
+#   uv venv src/renewal_rt/.venv --python 3.11
+#   VENV=src/renewal_rt/.venv/bin/python
+#   uv pip install --python $VENV -e ../iddata   --no-deps
+#   uv pip install --python $VENV -e ../idmodels --no-deps
+#   uv pip install --python $VENV -r src/renewal_rt/requirements.txt
+#
+# idmodels' unused siblings (lightgbm, sarix, timeseriesutils, tqdm) are stubbed at
+# import time by _stubs.py, so they are intentionally NOT installed here.
+
+numpy
+pandas~=2.0
+scipy
+pymmwr
+rich
+s3fs
+toml
+click
+python-dateutil
+matplotlib

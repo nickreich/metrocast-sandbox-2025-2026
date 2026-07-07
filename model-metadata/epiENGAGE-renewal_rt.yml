@@ -1,0 +1,14 @@
+team_name: "epiENGAGE"
+team_abbr: "epiENGAGE"
+model_name: "Renewal / Rt sample-trajectory model"
+model_abbr: "renewal_rt"
+local_fit_jointly: true
+model_contributors:
+  - name: "Nicholas Reich"
+    affiliation: "UMass Amherst"
+    email: "nick@umass.edu"
+license: "CC-BY-4.0"
+designated_model: false
+long_term_forecasts: true
+data_sources: "MetroCast Hub target data (NSSP % ED visits due to flu)"
+methods: "Semi-mechanistic renewal/Rt model. Rt is estimated per location from a penalized smoothing spline of log(% flu ED visits) (a GAM-equivalent instantaneous growth rate) mapped to R via the Euler-Lotka relation with a flu generation interval. Rt is forecast from a seasonal climatology pooled across locations plus a location offset and an AR(1) deviation; the percentage is projected with a renewal-consistent growth step and Ornstein-Uhlenbeck reversion toward a seasonal level climatology (saturation proxy). Produces 100 coherent full-season sample trajectories per location (v1 state level)."
